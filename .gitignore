@@ -212,7 +212,8 @@ __marimo__/
 # -----------------------------
 
 # Raw data (original newsletter HTML files)
-data/raw/
+data_raw
+
 
 # Large or intermediate processed files
 data/processed/*.csv
@@ -220,3 +221,5 @@ data/processed/*.csv
 # Optional: temporary working folders
 data/tmp/
 outputs/
+
+
