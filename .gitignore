@@ -216,7 +216,8 @@ data_raw
 
 
 # Large or intermediate processed files
-data/processed/*.csv
+*.csv
+*.xlsx
 
 # Optional: temporary working folders
 data/tmp/
@@ -224,3 +225,7 @@ outputs/
 
 
 .env
+
+
+# .ipynb_checkpoints/
+**/.ipynb_checkpoints/
