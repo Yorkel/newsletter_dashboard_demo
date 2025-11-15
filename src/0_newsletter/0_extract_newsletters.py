@@ -10,8 +10,8 @@ import pandas as pd
 # -----------------------------
 # CONFIG
 # -----------------------------
-FOLDER = "/workspaces/ERP_Newsletter/data_raw/newsletters_15.10.2025"
-OUTPUT_CSV = "/workspaces/ERP_Newsletter/data_processed/newsletter_items.csv"
+FOLDER = "/workspaces/ERP_Newsletter/data/0_raw/0_newsletters_html_15.10.2025"
+OUTPUT_CSV = "/workspaces/ERP_Newsletter/data/0_raw/1_newsletter_short_text"
 
 # Theme & subtheme bars (add shades seen across issues)
 DARK_BLUE_BG = {c.upper() for c in [
