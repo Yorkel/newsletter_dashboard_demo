@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.metrics import cohen_kappa_score
 
-df = pd.read_csv("/workspaces/ERP_Newsletter/data_processed/sample_llm_vs_manual_labels.csv")
+df = pd.read_csv("/workspaces/ERP_Newsletter/data/2_processed/1_am2_sentiment_analysis/sample_llm_vs_manual_labels.csv)
 subset = df[df['manual_label'].notna()]
 
 agreement = (subset['manual_label'] == subset['llm_label']).mean()

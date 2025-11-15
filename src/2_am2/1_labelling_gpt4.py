@@ -5,8 +5,8 @@ from tqdm import tqdm
 from dotenv import load_dotenv
 
 # ------------------------- config -------------------------
-INPUT_CSV  = "/workspaces/ERP_Newsletter/data_processed/sample_to_label.csv"
-OUTPUT_CSV = "/workspaces/ERP_Newsletter/data_processed/sample_llm_prelabeled.csv"
+INPUT_CSV  = "/workspaces/ERP_Newsletter/data/2_processed/1_am2_sentiment_analysis/sample_to_label.csv"
+OUTPUT_CSV = "/workspaces/ERP_Newsletter/data/2_processed/1_am2_sentiment_analysis/sample_llm_prelabeled.csv"
 MODEL_NAME = "gpt-4o-mini"     # good quality & low cost
 TEMP       = 0
 BATCH_SLEEP_SECS = 0.3         # gentle pacing to avoid rate limits
