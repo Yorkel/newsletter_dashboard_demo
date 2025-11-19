@@ -227,5 +227,12 @@ outputs/
 .env
 
 
-# .ipynb_checkpoints/
-**/.ipynb_checkpoints/
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Python cache
+__pycache__/
+
+# Virtual environments
+venv/
+.env

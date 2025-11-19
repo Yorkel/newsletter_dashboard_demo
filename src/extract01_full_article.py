@@ -8,15 +8,15 @@ import requests
 from bs4 import BeautifulSoup
 
 # ✅ Import canonical_url from your original scraper
-from extract_newsletters import canonical_url
+from extract00_newsletters import canonical_url
 
 
 # -----------------------------
 # CONFIG
 # -----------------------------
-NEWSLETTER_ITEMS_CSV = "/workspaces/ERP_Newsletter/data/0_raw/1_newsletter_short_text/newsletter_items.csv"
-ARTICLES_CSV = "/workspaces/ERP_Newsletter/data/0_raw/2_newsletter_full_article/newsletter_articles.csv"
-MERGED_OUTPUT_CSV = "/workspaces/ERP_Newsletter/data/0_raw/2_newsletter_full_article/newsletter_items_with_articles.csv"
+NEWSLETTER_ITEMS_CSV = "/workspaces/ERP_Newsletter/data/data03_newsletter_items_clean/items_final_themes.csv"
+ARTICLES_CSV = "/workspaces/ERP_Newsletter/data/data04_full_articles_scraped/newsletter_full_articles.csv"
+MERGED_OUTPUT_CSV = "/workspaces/ERP_Newsletter/data/data04_full_articles_scraped/newsletter_full_articles_with_itmes.csv"
 
 HEADERS = {
     "User-Agent": (
@@ -30,18 +30,41 @@ HEADERS = {
 # -----------------------------
 # HTTP + HTML HELPERS
 # -----------------------------
-def fetch_html(url: str, timeout: int = 10) -> str | None:
-    """Fetch raw HTML for a URL, with basic error handling."""
+def fetch_html(url: str, timeout: int = 10) -> tuple[str | None, str | None]:
+    """
+    Fetch raw HTML for a URL, with a reason if it fails.
+
+    Returns
+    -------
+    html : str | None
+        The HTML text if successful, else None.
+    failure_reason : str | None
+        A short machine-readable reason if it failed, else None.
+    """
     try:
         resp = requests.get(url, headers=HEADERS, timeout=timeout)
         if resp.status_code != 200:
-            print(f"❌ {resp.status_code} fetching {url}")
-            return None
+            reason = f"http_status_{resp.status_code}"
+            print(f"❌ {reason} fetching {url}")
+            return None, reason
+
         resp.encoding = resp.apparent_encoding
-        return resp.text
+        return resp.text, None
+
+    except requests.exceptions.Timeout:
+        reason = "timeout"
+        print(f"❌ {reason} fetching {url}")
+        return None, reason
+
+    except requests.exceptions.RequestException as e:
+        reason = f"request_exception_{type(e).__name__}"
+        print(f"❌ {reason} fetching {url}: {e}")
+        return None, reason
+
     except Exception as e:
-        print(f"❌ Error fetching {url}: {e}")
-        return None
+        reason = f"unknown_error_{type(e).__name__}"
+        print(f"❌ {reason} fetching {url}: {e}")
+        return None, reason
 
 
 def extract_main_text(html: str) -> str | None:
@@ -126,8 +149,10 @@ def main():
     rows = []
     for i, url in enumerate(links, start=1):
         print(f"[{i}/{len(links)}] Fetching {url}")
-        html = fetch_html(url)
+        html, fetch_reason = fetch_html(url)
+
         if not html:
+            # We couldn't fetch the page at all
             rows.append({
                 "article_id": str(uuid.uuid4()),
                 "link_canonical": url,
@@ -135,11 +160,19 @@ def main():
                 "article_title": None,
                 "article_text": None,
                 "status": "error",
+                "failure_reason": fetch_reason,  # e.g. "http_status_404", "timeout"
             })
             continue
 
         a_title = article_title_from_html(html)
         a_text = extract_main_text(html)
+
+        if a_text:
+            status = "ok"
+            failure_reason = None
+        else:
+            status = "empty"
+            failure_reason = "no_main_text_extracted_or_too_short"
 
         rows.append({
             "article_id": str(uuid.uuid4()),
@@ -147,7 +180,8 @@ def main():
             "domain": urlparse(url).netloc if url else "",
             "article_title": a_title,
             "article_text": a_text,
-            "status": "ok" if a_text else "empty",
+            "status": status,
+            "failure_reason": failure_reason,
         })
 
         # Be polite to servers
