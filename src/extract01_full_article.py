@@ -16,7 +16,7 @@ from extract00_newsletters import canonical_url
 # -----------------------------
 NEWSLETTER_ITEMS_CSV = "/workspaces/ERP_Newsletter/data/data03_newsletter_items_clean/items_final_themes.csv"
 ARTICLES_CSV = "/workspaces/ERP_Newsletter/data/data04_full_articles_scraped/newsletter_full_articles.csv"
-MERGED_OUTPUT_CSV = "/workspaces/ERP_Newsletter/data/data04_full_articles_scraped/newsletter_full_articles_with_itmes.csv"
+MERGED_OUTPUT_CSV = "/workspaces/ERP_Newsletter/data/data04_full_articles_scraped/newsletter_full_articles_with_items.csv"
 
 HEADERS = {
     "User-Agent": (
