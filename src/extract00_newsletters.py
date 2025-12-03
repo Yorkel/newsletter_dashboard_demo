@@ -1,3 +1,5 @@
+#This script automatically parses all newsletter HTML files, extracts each item's theme, subtheme, title, description, and link (with full cleaning, URL normalisation, and deduplication), and saves the structured dataset as newsletter_items.csv for downstream analysis.
+
 import os
 import re
 import uuid
@@ -10,8 +12,8 @@ import pandas as pd
 # -----------------------------
 # CONFIG
 # -----------------------------
-FOLDER = "/workspaces/ERP_Newsletter/data/0_raw/0_newsletters_html_15.10.2025"
-OUTPUT_CSV = "/workspaces/ERP_Newsletter/data/0_raw/1_newsletter_short_text"
+FOLDER = "/workspaces/ERP_Newsletter/data/data00_html_15.10.2025"
+OUTPUT_CSV = "/workspaces/ERP_Newsletter/data/data01_newsletter_items/newsletter_items.csv"
 
 # Theme & subtheme bars (add shades seen across issues)
 DARK_BLUE_BG = {c.upper() for c in [

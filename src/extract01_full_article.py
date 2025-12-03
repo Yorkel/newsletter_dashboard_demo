@@ -1,3 +1,13 @@
+# Loads items_final_themes.csv (your fully cleaned dataset).
+# Removes blank links and canonicalises them using your shared helper.
+# Fetches each link using polite 1-second delays.
+# Handles failures cleanly (404, timeout, request errors).
+# Extracts:
+# the page title
+# the main article text (article → main → largest section → body fallback)
+# Saves a standalone article dataset.
+# Merges article results back into your newsletter items.
+
 import os
 import time
 import uuid
