@@ -6,7 +6,7 @@
 
 ## 1. The Problem
 
-Two members of the ERP team (programme director + research assistant) spend approximately 7 hours per week:
+Two members of the ERP team (programme director + researcher) spend approximately 7.5 hours per week (NC's estimate):
 
 - Scanning ~55 sources (email newsletters and websites) for relevant articles
 - Deciding which newsletter section each article belongs in
@@ -20,7 +20,7 @@ Two members of the ERP team (programme director + research assistant) spend appr
 - Not scalable — more sources or higher frequency breaks the manual process
 - Defined end date — the system must survive the current team
 
-**What this project does NOT do:** Replace the curators. It handles the administrative sorting (gathering, classifying, deduplicating) so the curators focus on what requires human judgement — deciding whether an article is genuinely worth including and writing the editorial voice.
+**What this project does NOT do:** Replace the curators. It handles the administrative gathering, sorting, and deduplication so the curators focus on what requires human judgement — deciding whether an article is genuinely worth including and writing the editorial voice.
 
 ---
 
@@ -58,7 +58,28 @@ See [docs/datasets.md](datasets.md) for full dataset descriptions.
 
 ---
 
-## 4. The Two Core ML Tasks
+## 4. The Three Core Tasks
+
+### Task 0 — Source Monitoring (aggregation)
+**Input:** The ~55 sources in `docs/external_sources.md`
+**Output:** A feed of new articles published this week, pulled automatically
+**Type:** RSS polling + web scraping
+
+The curators currently spend ~30–40 mins/day browsing sources manually. A source monitor running on a schedule (e.g. daily cron job) replaces most of this. Sources split into three tiers by automation difficulty:
+
+| Tier | How monitored | Coverage | Approach |
+|---|---|---|---|
+| RSS/Atom feed | Automatic | ~60% of sources | Poll feed, extract new items since last run |
+| Email newsletter (Schools Week, EPI, HEPI etc.) | Semi-automatic | ~25% of sources | Parse incoming emails via Gmail API or dedicated inbox |
+| Manual check only (no feed, no newsletter) | Manual — unchanged | ~15% of sources | Curator still visits these directly |
+
+Even covering the RSS tier alone removes the majority of manual browsing. The remaining 15% of sources (manual-only sites) stay in the curator's workflow unchanged — the system doesn't need to be complete to be useful.
+
+New items from the automated tiers feed directly into the classifier and are surfaced in the curator app. The curator reviews them rather than hunting for them.
+
+**Skills:** RSS parsing (`feedparser`), web scraping (`requests` + `BeautifulSoup`), scheduling (`cron` or GitHub Actions), deduplication against already-seen items.
+
+---
 
 ### Task A — Section Classifier (supervised classification)
 **Input:** Article title (+ optionally a short text snippet from the source)
@@ -69,10 +90,12 @@ This is a supervised learning problem — the curators have already assigned lab
 
 ### Task B — Semantic Deduplication (similarity)
 **Input:** All candidate articles for the current week
-**Output:** Groups of articles covering the same story; one recommended per group
+**Output:** Groups of articles covering the same story, ranked by version quality
 **Type:** Pairwise semantic similarity → clustering
 
-When multiple sources cover the same event, the curators currently read all versions and choose one. The system should surface the duplicate group and rank versions by source authority or description quality.
+When multiple sources cover the same event, the curators read all versions and choose one. The system should surface the group and rank versions — but the curator decides whether to include one, several (different angles), or none. Note: covering the same topic from different angles (e.g. two pieces on the Schools White Paper with different takes) is an intentional editorial choice, not a deduplication error — the system must present groups for human decision, not automatically discard.
+
+**Ranking criteria (confirmed with curators):** (1) quality/clarity of the item, (2) source authority/reputability, (3) source diversity — avoid repeating a source already used elsewhere in that issue.
 
 ---
 
@@ -83,8 +106,7 @@ The plan is to train and compare multiple approaches for Task A. This is both go
 ### Step 0 — Label normalisation & data prep
 - Collapse 68 raw theme variants into 6 clean labels
 - Remove internal programme rows and parsing noise
-- Decide: train on `title` only, or `title + description`?
-  - **Preference: title only** — at inference time, the curator has a title but has not yet written a description. Using descriptions in training would create a training/inference mismatch.
+- Train on `title` only — confirmed. Section assignment happens before the description is written (the curator assigns a section when logging the item via the Microsoft Form, before writing the description). Using descriptions in training would create a training/inference mismatch.
 - Stratified train/validation/test split (e.g. 70/15/15) preserving temporal order where possible
 - Establish evaluation metrics: macro F1, per-class precision/recall, confusion matrix
 
@@ -144,8 +166,8 @@ The plan is to train and compare multiple approaches for Task A. This is both go
 - Encode all candidate articles for the week using the sentence transformer selected in Task A
 - Compute pairwise cosine similarity
 - Group articles with similarity above a threshold (start at 0.85, tune manually)
-- For each group, rank versions by: (1) source authority, (2) description richness
-- Present groups to the curator for confirmation — they choose one or dismiss the grouping
+- For each group, rank versions by: (1) item quality/clarity, (2) source authority, (3) source diversity within that issue
+- Present groups to the curator — they choose one, keep multiple (different angles), or dismiss the grouping entirely
 - **Skills:** vector similarity, clustering, threshold tuning, embedding spaces
 
 ---
@@ -167,10 +189,30 @@ Once classification and deduplication are done, use an LLM to generate a structu
 
 ---
 
-## 8. Tech Stack
+## 8. Intended Curator Workflow
+
+The target workflow automates source monitoring and classification, replacing most of the manual browsing and all of the section-assignment step:
+
+1. **Source monitor runs daily** (automated) — polls RSS feeds and scraped sites from `docs/external_sources.md`, extracts new articles since last run, stores in Supabase
+2. **Classifier runs on new items** (automated) — suggests a section + confidence score for each new article; flags pairs that look like the same story
+3. **Curator opens the app** — two things to do: (a) triage queue of automated feed items, pre-labelled with suggested section and duplicate flags; (b) manual sources checklist — a single page listing all non-RSS sources with direct links and a "checked" tick, so the curator can work through them in one sitting without having to remember what to visit.
+4. **Curator reviews each item** — accept suggested section, override it, or discard the article entirely. Duplicate groups are shown together so the curator picks the best version.
+5. **Article confirmed → saved to Supabase** — with final section, model suggestion, and agreement/override logged
+6. **End of week** — curator views shortlist grouped by section, checks min/max counts per section, writes descriptions, compiles newsletter
+
+**What stays manual:** ~15% of sources with no RSS feed or newsletter, internal programme/PI updates, writing descriptions, final editorial sign-off.
+
+**Why this is better:** Scanning 55 sources currently takes ~30–40 mins/day. The automated feed replaces ~60%+ of that browsing with a triage queue the curator works through once. Section assignment goes from a blank-page decision to a one-click confirm.
+
+**Tech:** Streamlit (or similar) front end, Supabase backend, model served via a simple Python API.
+
+---
+
+## 10. Tech Stack
 
 | Component | Technology |
 |---|---|
+| Source monitoring | `feedparser` (RSS), `requests` + `BeautifulSoup` (scraping), `cron` / GitHub Actions (scheduling) |
 | Data processing | pandas, BeautifulSoup |
 | Baseline classifier | scikit-learn (TF-IDF, LogReg, SVM) |
 | Transformer fine-tuning | HuggingFace `transformers`, PyTorch |
@@ -185,6 +227,7 @@ Once classification and deduplication are done, use an LLM to generate a structu
 ## 9. Implementation Phases
 
 ### Phase 0 — Data preparation (do first)
+
 - [ ] Run extraction script on issues 88–102 to extend the labelled dataset
 - [ ] Normalise labels: map 68 raw themes → 6 clean labels, remove noise rows
 - [ ] Decide on input features: title only vs title + snippet
@@ -209,10 +252,20 @@ Once classification and deduplication are done, use an LLM to generate a structu
 - [ ] Tune threshold on a small manually-reviewed sample
 - [ ] Evaluate precision (are groups real duplicates?) and recall (any missed?)
 
+### Phase 3b — Source monitor
+- [ ] Audit sources in `docs/external_sources.md` — identify which have RSS feeds
+- [ ] Build RSS poller (`feedparser`) that fetches new items daily and stores in Supabase
+- [ ] For manual-check sites without RSS: assess whether lightweight scraping is feasible per site
+- [ ] Deduplicate against previously seen items (by URL + title similarity) to avoid surfacing the same article twice
+- [ ] Schedule as a daily cron job or GitHub Actions workflow
+
 ### Phase 4 — End-to-end pipeline
 - [ ] Build pipeline: ingest articles → classify → deduplicate → surface to curator
-- [ ] Define the curator interface (Supabase table + simple UI, or structured output file)
-- [ ] Curator feedback loop: corrections logged as future training signal
+- [ ] Build lightweight web app (Streamlit) with three pages:
+  - **Triage queue** — automated feed items pre-labelled with suggested section and duplicate flags; curator accepts, overrides, or discards each
+  - **Manual sources checklist** — list of all non-RSS sources with clickable links (open in new tab), "mark as checked this week" button, and last-checked timestamp; curator works through this list to cover the remaining ~15% of sources
+  - **Weekly shortlist** — confirmed articles grouped by section, showing counts per section (min 2 / max 4), ready for description writing and compilation
+- [ ] Curator feedback loop: confirmations and overrides logged as future training signal
 
 ### Phase 5 — Stretch: draft generation
 - [ ] Prompt design for section-grouped newsletter draft
@@ -221,11 +274,16 @@ Once classification and deduplication are done, use an LLM to generate a structu
 
 ---
 
-## 10. Questions to Resolve With Curators
+## 11. Questions Resolved and Outstanding
 
-See [docs/process_curators_follow.md](process_curators_follow.md) for the full list. Key ones for model design:
+See [docs/process_curators_follow.md](process_curators_follow.md) for the full curator process.
 
-- Does section assignment happen before or after writing the description? (Affects whether we train on title only or title + description)
-- How many articles do they review vs include per week? (Defines the scale of the gathering tool)
-- What makes one source version preferable over another when deduplicating?
-- What would "good enough" output look like — does every suggestion need to be correct, or is a correct-most-of-the-time system with easy human override acceptable?
+**Resolved:**
+- Section assignment happens before description writing → confirmed **title-only** training
+- ~15–20 articles reviewed per week, ~12 included → sets scale of the gathering tool
+- Version preference when deduplicating: quality first, then source authority, then source diversity within the issue
+- Curators want to retain final control — system assists, never auto-publishes
+
+**Still open:**
+- What would "good enough" output look like — does every suggestion need to be correct, or is mostly-right with easy override acceptable?
+- Source–slant relationship in practice — examples needed to inform deduplication logic (same story vs same topic from different angle)

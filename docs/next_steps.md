@@ -4,18 +4,18 @@ Five things to do, in order.
 
 ---
 
-## 1. Talk to the curators
+## 1. ~~Talk to the curators~~ — Done
 
-**Why first:** Several model design decisions depend on answers only the curators can give. Getting this wrong means building the wrong thing.
+Key questions resolved from curator input (NC + Gemma Moss):
 
-**What to do:** Book a meeting with the director and research assistant. Use [docs/process_curators_follow.md](process_curators_follow.md) as the agenda. The questions that most affect model design:
+- **Section assignment happens before description writing** → confirmed: train on title only
+- **~15–20 articles reviewed per week, ~12 included** → sets scale of the gathering tool
+- **Version preference when deduplicating:** quality first, then source authority, then source diversity within the issue
+- **Multiple angles on same topic can both be included** — deduplication is a suggestion, not automatic
 
-- Does section assignment happen before or after writing the description?
-- How many articles do they review vs include in a typical week?
-- How often do multiple sources cover the same story?
-- What would "good enough" output look like — can the system be wrong sometimes if it's easy to correct?
-
-**Output:** Annotated version of `process_curators_follow.md` with answers filled in.
+Remaining open questions (lower priority — don't block modelling):
+- What would "good enough" output look like — mostly-right with easy override, or near-perfect?
+- Source–slant examples needed to refine deduplication logic
 
 ---
 
@@ -43,7 +43,7 @@ Check the existing script handles the newer filenames (`ESRC Education Research 
 
 1. Apply the normalisation map from [docs/datasets.md](datasets.md) — collapse 68 themes → 6 clean labels
 2. Drop internal programme rows and parsing noise
-3. Inspect class distribution — are sections roughly balanced?
+3. Inspect class distribution — are sections roughly balanced? (RPP is known to be the hardest to fill, so likely the smallest class)
 4. Inspect title length distribution — are titles long enough to classify reliably?
 5. Look at a random sample from each class — do the labels make sense?
 6. Save clean dataset to `data/training/classifier_training.csv`
