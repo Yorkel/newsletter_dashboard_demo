@@ -16,8 +16,8 @@ import pandas as pd
 # -----------------------------
 # CONFIG
 # -----------------------------
-FOLDER = "/workspaces/AM2_erp_programme_automataion/data/raw/newsletters_html"
-OUTPUT_CSV = "/workspaces/AM2_erp_programme_automataion/data/processed/training_data_march_26.csv"
+FOLDER = "/workspaces/AM2_erp_programme_automataion/data/newsletters_html"
+OUTPUT_CSV = "/workspaces/AM2_erp_programme_automataion/data/interim/extracted_newsletters.csv"
 
 # Theme & subtheme bar colours
 DARK_BLUE_BG = {c.upper() for c in [
