@@ -61,10 +61,13 @@ def fix_artifacts(df: pd.DataFrame, cols: list) -> pd.DataFrame:
 
 
 def drop_missing_essentials(df: pd.DataFrame) -> pd.DataFrame:
-    """Drop rows missing title, link, or description."""
+    """Drop rows missing title or link. Description is optional."""
     before = len(df)
-    df = df.dropna(subset=["title", "link", "description"]).copy()
-    print(f"  Dropped {before - len(df)} rows with missing title/link/description. Remaining: {len(df)}")
+    df = df.dropna(subset=["title", "link"]).copy()
+    # Drop rows where the extracted 'title' is just a bare URL (extraction artefact)
+    url_mask = df["title"].str.strip().str.match(r"https?://", na=False)
+    df = df[~url_mask].copy()
+    print(f"  Dropped {before - len(df)} rows with missing title/link or URL-as-title. Remaining: {len(df)}")
     return df
 
 

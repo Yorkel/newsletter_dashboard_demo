@@ -84,6 +84,10 @@ THEME_PAIRS = [
     ("update_from_pi", "Update from PI Robert Klassen"),
     ("update_from_pi", "Update from PI David Lundie"),
     ("update_from_pi", "Update from PI Alison Porter"),
+    ("update_from_pi", "Update from PI Toby Greany"),
+    ("update_from_pi", "Update from PI Stephen Gorard"),
+    ("update_from_pi", "Update from PI John Gordon"),
+    ("update_from_pi", "Update from PI Rebecca Eynon"),
 
     # what_matters_ed
     ("what_matters_ed", "What Matters in Education?"),
@@ -732,8 +736,8 @@ def norm_key(s: str) -> str:
 
 def add_themes(df: pd.DataFrame) -> pd.DataFrame:
     """Standardise raw theme column into new_theme."""
-    # Drop unsubscribe rows
-    mask_unsub = df["theme"].astype(str).str.strip().eq(UNSUB_THEME)
+    # Drop unsubscribe rows — match any variant (email address changes over time)
+    mask_unsub = df["theme"].astype(str).str.lower().str.contains("unsubscribe", na=False)
     dropped = int(mask_unsub.sum())
     df = df[~mask_unsub].copy()
     print(f"  Dropped {dropped} unsubscribe row(s)")

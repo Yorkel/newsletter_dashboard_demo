@@ -1,4 +1,4 @@
 {
-    "python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python",
+    "python.defaultInterpreterPath": "/workspaces/AM2_erp_programme_automataion/.venv/bin/python",
     "python.terminal.activateEnvironment": true
 }
