@@ -4,7 +4,7 @@
 
 ## Next Steps (do in order)
 
-### 1. Preprocessing notebook (`02_preprocessing.ipynb`)
+### ~~1. Preprocessing notebook (`02_preprocessing.ipynb`)~~ — Done (2026-04-03)
 
 - Minimal text cleaning (remove URLs, email addresses — keep casing and punctuation for transformers)
 - Encode metadata features (`item_type`, `org_broad_category`)
@@ -91,6 +91,19 @@ This tests the whole system end-to-end: did the classifier categorise articles c
 ---
 
 ## Completed Steps & Key Decisions
+
+---
+
+### Preprocessing for modelling — Done (2026-04-03)
+
+Notebook: `notebooks/02_preprocessing.ipynb`
+
+Key decisions:
+- Minimal text cleaning only (remove URLs and emails) — keeps casing and punctuation for transformers. TF-IDF handles its own lowercasing/stopwords inside `TfidfVectorizer`; each model controls its own tokenisation on top of `text_clean`
+- One-hot encoded `item_type` (8 columns) and `org_broad_category` (9 columns) = 17 metadata features
+- Stratified 85/15 train/val split on 6-class target (seed=42) → 942 train, 167 val
+- Output saved to `data/modelling/train.csv`, `val.csv`, and `metadata_columns.json`
+- **Encoding at inference:** `metadata_columns.json` stores the expected one-hot column names from training. The inference pipeline must load this list and `reindex(columns, fill_value=0)` so the model always sees the same feature shape — handles missing or new categories gracefully
 
 ---
 
