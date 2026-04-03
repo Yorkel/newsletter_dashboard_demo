@@ -51,6 +51,25 @@
 
 ---
 
+### 7. Build inference pipeline
+
+- Connect winning model to existing pipeline (`src/pipeline.py`)
+- Add classification step (`s04_classify`) to the `--new-newsletter` path
+- Use scraped articles from the separate weekly scraping repo (6 organisations, Jan 2026–present) as inference input
+- Add new organisations to the mapping table as needed
+
+---
+
+### 8. Real-world validation (layer 2)
+
+Two layers of validation:
+- **Layer 1 (done in step 6):** val set evaluation — standard ML metrics on held-out historical data
+- **Layer 2:** run the full inference pipeline on live scraped articles, then compare predicted categories against what the curator actually selected for that week's newsletter
+
+This tests the whole system end-to-end: did the classifier categorise articles correctly? Did it miss articles the curator included? Did it suggest articles the curator didn't pick?
+
+---
+
 ## Completed Steps & Key Decisions
 
 ---
