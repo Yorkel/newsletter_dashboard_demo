@@ -41,6 +41,8 @@
 
 - Zero-shot Claude API classifier
 - Few-shot Claude API classifier (random vs RAG-style example selection)
+- DSPy optimisation pass — systematically optimise prompts against eval metrics rather than hand-tuning
+- Inspect structured evaluation logged
 
 ---
 
