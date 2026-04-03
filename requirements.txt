@@ -7,3 +7,6 @@ requests
 scikit-learn
 seaborn
 ipykernel
+sentence-transformers
+transformers
+torch
