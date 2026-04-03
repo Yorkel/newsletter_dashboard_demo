@@ -10,3 +10,5 @@ ipykernel
 sentence-transformers
 transformers
 torch
+anthropic
+python-dotenv
