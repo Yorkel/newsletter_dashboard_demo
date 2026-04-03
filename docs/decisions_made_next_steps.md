@@ -4,105 +4,78 @@
 
 ## Next Steps (do in order)
 
-### 1. EDA — explore the full dataset
+### 1. Preprocessing notebook (`02_preprocessing.ipynb`)
 
-Use `data/preprocessed/newsletters_preprocessed.csv` (1,363 rows, full unsplit dataset).
-
-Suggested notebook: `notebooks/01_eda.ipynb`
-
-Things to look at:
-- Class distribution of `new_theme` — how imbalanced is it?
-- `item_type` breakdown — what proportion are articles vs reports vs academic papers?
-- `org_broad_category` — which sectors dominate the newsletter?
-- Top organisations by article count
-- Title and description length distributions — are titles long enough to classify from?
-- Articles per newsletter issue over time (`newsletter_number`) — any gaps or spikes?
-- Unmapped organisations / domains (`organisation` is NaN) — are there important sources missing from the lookup?
-
-This also doubles as analysis for Gemma's presentation — **[TO CLARIFY: confirm what the presentation needs before finalising]**
+- Minimal text cleaning (remove URLs, email addresses — keep casing and punctuation for transformers)
+- Encode metadata features (`item_type`, `org_broad_category`)
+- Stratified train/val split
+- Save train/val CSVs
 
 ---
 
-### 2. Analysis for Gemma's presentation — URGENT (event: 30 March 2026)
+### 2. Baseline classifier (`03_baseline_tfidf.ipynb`)
 
-**Event:** BERA seminar — *"Teacher Recruitment and Retention and its links to attainment gaps in England"*
-**Gemma's talk:** *"Teacher recruitment, retention and development: perspectives from policy and from research"*
-**Audience:** Teacher educators, school leaders, teachers, educational researchers, policy makers
-
-Notebook: `notebooks/02_gemma_presentation_analysis.ipynb`
-Dataset: `data/preprocessed/newsletters_preprocessed.csv`
-
-Filter to `new_theme == "teacher_rrd"` (203 items across issues 1–104).
-
-Suggested analysis:
-- How many teacher_rrd items have been featured across the programme's lifetime?
-- Coverage over time — by newsletter issue / approximate date. Any spikes around policy announcements?
-- Which organisations and source types dominate (government vs academic vs think tank vs media)?
-- Top sources by count (which outlets cover this topic most?)
-- Item type breakdown — reports, news articles, academic articles, government documents
-- A curated list of the most notable titles (could be used as a reading list / slide reference)
-- Comparison: how does teacher_rrd coverage compare in volume to other themes?
+- TF-IDF + logistic regression with `class_weight="balanced"`
+- Evaluate: macro F1, per-class precision/recall, confusion matrix
+- Inspect top features per class (LogReg coefficients)
 
 ---
 
-### 3. Set up experiment tracking
-**Why:** You're going to train 5 different models and compare them. Without experiment tracking, you'll lose results, forget hyperparameters, and waste time re-running things. Set this up before you write a single model.
+### 3. Sentence Transformer + Classifier Head (`04_sentence_transformer.ipynb`)
 
-```bash
-pip install mlflow
-```
-
-Create a minimal MLflow run that logs:
-- Model name / type
-- Hyperparameters
-- Macro F1, per-class F1
-- Confusion matrix as an artefact
-
-Run it once with a dummy model to confirm it works. Store runs in local `mlruns/` folder (gitignored).
-
----
-
-### 4. Build the baseline classifier (Model 1)
-
-Create `notebooks/02_baseline_classifier.ipynb`:
-
-1. Load `data/processed/train.csv` and `val.csv`
-2. sklearn pipeline: `TfidfVectorizer` → `LogisticRegression`
-3. Evaluate on val: macro F1, per-class precision/recall, confusion matrix
-4. Inspect top features per class (LogReg coefficients)
-5. Log everything to MLflow
-
-**Output:** Baseline macro F1; understanding of which sections are hard to distinguish.
-
----
-
-### 5. Fine-tuned Transformer (Model 2)
-
-- Fine-tune DistilBERT / RoBERTa on the 6-section classification task
-- Use HuggingFace `transformers` + `Trainer` API
-- Techniques for small dataset: early stopping, learning rate warmup, weight decay
-- Log to MLflow; compare to baseline
-
----
-
-### 6. Sentence Transformer + Classifier Head (Model 3)
-
-- Encode titles with `all-MiniLM-L6-v2` (frozen)
+- Encode text with `all-MiniLM-L6-v2` (frozen)
 - Train lightweight LogReg or MLP head on embeddings
-- Compare to Model 2: does full fine-tuning add much?
+- Compare to baseline: does embedding approach add much?
 
 ---
 
-### After Models 1–3
+### 4. Fine-tuned Transformer (`05_transformer.ipynb`)
 
-- Model 4: Zero-shot Claude API classifier
-- Model 5: Few-shot Claude API classifier (random vs RAG-style example selection)
-- Compare all 5 on the same val set: macro F1, per-class F1, latency, cost
+- Fine-tune DistilBERT/BERT on the 6-category classification task
+- Techniques for small dataset: early stopping, low learning rate, 3-5 epochs, weight decay
+- Compare to baseline
+
+---
+
+### 5. Claude API classifiers (`06_claude_api.ipynb`)
+
+- Zero-shot Claude API classifier
+- Few-shot Claude API classifier (random vs RAG-style example selection)
+
+---
+
+### 6. Model comparison (`07_model_comparison.ipynb`)
+
+- Compare all 5 models on the same val set: macro F1, per-class F1, confusion matrices, latency, cost
 - Select best model for production use
 
 ---
 
 ## Completed Steps & Key Decisions
+
+---
+
+### EDA — Done (2026-04-02)
+
+Notebook: `notebooks/01_eda.ipynb`
+
+Key decisions:
+- Dropped `update_from_pi` and `update_from_programme` categories (curator content, not derived from articles)
+- Dropped rows with fewer than 15 words (junk: sub-links, email signups, bylines)
+- Dropped rows with unmapped organisations (platform/utility domains: eventbrite, zoom, bit.ly)
+- Final clean dataset: 1,109 rows, 6 categories, saved to `data/processed/eda_cleaned.csv`
+- Features for modelling: `text` (main signal via TF-IDF), `item_type`, `org_broad_category` (metadata features with signal)
+- Categories have distinct vocabularies — TF-IDF will be effective
+- Class balance is mild (13.0%–21.6%) — stratified splits and `class_weight="balanced"` sufficient
+- 1,109 samples sufficient for TF-IDF + logistic regression; borderline for fine-tuning DistilBERT; too small for larger transformers
+- Pipeline must keep input consistent: use title + short description at both training and inference time
+- If a new source is added to scraping list, must also be added to the organisation mapping table
+
+---
+
+### Analysis for Gemma's BERA presentation — Done (30 March 2026)
+
+Notebook: `notebooks/bera/bera_analysis_clean.ipynb`
 
 ---
 

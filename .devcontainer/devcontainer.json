@@ -17,5 +17,9 @@
     }
   },
 
+  "remoteEnv": {
+    "VIRTUAL_ENV_DISABLE_PROMPT": "1"
+  },
+
   "forwardPorts": [8888]
 }
