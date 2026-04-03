@@ -225,3 +225,4 @@ venv/
 .env
 docs/*.md
 .env
+models/
