@@ -70,6 +70,24 @@ This tests the whole system end-to-end: did the classifier categorise articles c
 
 ---
 
+### 9. Semantic deduplication
+
+- Use sentence transformer embeddings to compute pairwise cosine similarity between candidate articles
+- Group articles above a similarity threshold — present groups to curator to pick the best version
+- Skills: vector similarity, clustering, threshold tuning
+
+---
+
+### 10. Newsletter draft generation (stretch goal)
+
+- Use Claude API to generate a structured newsletter draft grouped by section
+- Short description per article generated from title + scraped body text
+- Curator edits the draft, adds their voice, writes internal sections manually
+- Potential to chain classification → deduplication → draft generation as an agentic pipeline using LangGraph
+- Skills: RAG, structured LLM output, prompt chaining, end-to-end pipeline design
+
+---
+
 ## Completed Steps & Key Decisions
 
 ---
