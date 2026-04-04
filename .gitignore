@@ -226,3 +226,4 @@ venv/
 docs/*.md
 .env
 models/
+outputs/
