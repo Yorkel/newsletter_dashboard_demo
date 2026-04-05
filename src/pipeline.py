@@ -1,21 +1,20 @@
 """
 pipeline.py
-Runs the full data pipeline in order:
-  s00 — Extract newsletters from HTML files
-  s01 — Clean and deduplicate
-  s02 — Preprocess (themes, orgs, item types, text features)
-  s03 — Split into train / val
+Runs the pipeline in one of three modes.
 
-Run from the project root:
-  python src/pipeline.py
+  python src/pipeline.py --training
+    Build training data + train model:
+    s00 extract → s01 clean → s02 preprocess → s03 split → s04 embed → s05 train → s06 evaluate
 
-For a new weekly newsletter (extract → clean → preprocess → scrape snippets, no split):
-  python src/pipeline.py --new-newsletter
+  python src/pipeline.py --inference
+    Weekly inference from Supabase:
+    s07 pull from Supabase → s08 classify → s09 monitor
 
-The --new-newsletter path adds s02b_scrape, which fetches the first paragraph
-from each article URL. This replaces the text feature at inference time so it
-matches the training data (title + short text). Falls back to title only if
-scraping fails.
+  python src/pipeline.py --classify-only
+    Classify existing local data (skip Supabase pull):
+    s08 classify → s09 monitor
+
+Run from the project root.
 """
 
 import argparse
@@ -28,18 +27,29 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-STEPS_FULL = [
-    ("s00_extract",   "src.extract.s00_extract_newsletters"),
-    ("s01_clean",     "src.preprocess.s01_clean"),
-    ("s02_preprocess","src.preprocess.s02_preprocess"),
-    ("s03_split",     "src.preprocess.s03_split"),
+# Training: build data + train model
+STEPS_TRAINING = [
+    ("s00_extract",    "src.training_data.s00_extract_newsletters"),
+    ("s01_clean",      "src.training_data.s01_clean"),
+    ("s02_preprocess", "src.training_data.s02_preprocess"),
+    ("s03_split",      "src.training_data.s03_split"),
+    ("s04_embed",      "src.classify.s04_embed"),
+    ("s05_train",      "src.classify.s05_train"),
+    ("s06_evaluate",   "src.classify.s06_evaluate"),
 ]
 
-STEPS_NEW_NEWSLETTER = [
-    ("s00_extract",    "src.extract.s00_extract_newsletters"),
-    ("s01_clean",      "src.preprocess.s01_clean"),
-    ("s02_preprocess", "src.preprocess.s02_preprocess"),
-    ("s02b_scrape",    "src.preprocess.s02b_scrape"),
+# Weekly inference: pull from Supabase + classify + monitor + push back
+STEPS_INFERENCE = [
+    ("s07_pull",       "src.inference.s07_pull_supabase"),
+    ("s08_predict",    "src.inference.s08_predict"),
+    ("s09_monitor",    "src.inference.s09_monitor"),
+    ("s10_push",       "src.inference.s10_push_supabase"),
+]
+
+# Classify only: run on existing local data
+STEPS_CLASSIFY_ONLY = [
+    ("s08_predict",    "src.inference.s08_predict"),
+    ("s09_monitor",    "src.inference.s09_monitor"),
 ]
 
 
@@ -52,15 +62,31 @@ def run_step(name: str, module_path: str):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="ERP Newsletter data pipeline")
-    parser.add_argument(
-        "--new-newsletter",
+    parser = argparse.ArgumentParser(description="AM2 Newsletter Classification Pipeline")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "--training",
         action="store_true",
-        help="Run extract→clean→preprocess only (for new weekly newsletters). Skip the train/val split.",
+        help="Build training data from HTML newsletters + train model + evaluate.",
+    )
+    group.add_argument(
+        "--inference",
+        action="store_true",
+        help="Pull from Supabase + classify + monitor (weekly workflow).",
+    )
+    group.add_argument(
+        "--classify-only",
+        action="store_true",
+        help="Classify existing local data + monitor (skip Supabase pull).",
     )
     args = parser.parse_args()
 
-    steps = STEPS_NEW_NEWSLETTER if args.new_newsletter else STEPS_FULL
+    if args.training:
+        steps = STEPS_TRAINING
+    elif args.inference:
+        steps = STEPS_INFERENCE
+    else:
+        steps = STEPS_CLASSIFY_ONLY
 
     for name, module_path in steps:
         run_step(name, module_path)
