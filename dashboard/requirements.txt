@@ -1,8 +1,5 @@
 streamlit
 pandas
 numpy
-sentence-transformers
-joblib
-scikit-learn
 python-dotenv
 openpyxl
