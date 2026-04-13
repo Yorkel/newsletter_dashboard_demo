@@ -2,7 +2,7 @@
   "name": "AM2 ERP Newsletter Automation",
   "image": "mcr.microsoft.com/devcontainers/python:3.12",
 
-  "postCreateCommand": "python3 -m venv .venv && .venv/bin/pip install -r requirements.txt",
+  "postCreateCommand": "python3 -m venv .venv && .venv/bin/pip install -r requirements.txt && echo 'Run: streamlit run dashboard/app.py'",
 
   "customizations": {
     "vscode": {
