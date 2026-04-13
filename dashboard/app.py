@@ -277,7 +277,8 @@ if "curator_articles" not in st.session_state:
 # Banner on every page
 st.markdown(
     "<div style='background:#fff3cd;border:1px solid #ffc107;border-radius:5px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#856404;text-align:center;'>"
-    "This is a prototype dashboard. The production version will be private to the programme curators.</div>",
+    "This is a prototype dashboard. The production version will be private to the programme curators.<br>"
+    "<strong>Warning:</strong> Your selections are saved for this session only and will reset when the page closes. The production version will save decisions permanently.</div>",
     unsafe_allow_html=True,
 )
 
