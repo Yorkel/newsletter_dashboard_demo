@@ -11,7 +11,7 @@
         "ms-toolsai.jupyter"
       ],
       "settings": {
-        "python.defaultInterpreterPath": "/workspaces/AM2_erp_programme_automataion/.venv/bin/python",
+        "python.defaultInterpreterPath": "/workspaces/newsletter_dashboard_demo/.venv/bin/python",
         "python.terminal.activateEnvironment": true
       }
     }

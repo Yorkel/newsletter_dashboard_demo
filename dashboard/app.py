@@ -223,7 +223,7 @@ st.markdown(f"""
 # -----------------------------
 # SIDEBAR
 # -----------------------------
-_logo_path = Path(__file__).parent / "Screenshot 2026-04-05 at 21.14.48.png"
+_logo_path = Path(__file__).parent / "erp_logo.png"
 if _logo_path.exists():
     st.sidebar.image(str(_logo_path), use_container_width=True)
 st.sidebar.title("Newsletter Curator")

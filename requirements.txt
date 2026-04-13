@@ -1,14 +1,5 @@
-beautifulsoup4
-ftfy
-matplotlib
-numpy
+streamlit
 pandas
-requests
-scikit-learn
-seaborn
-ipykernel
-sentence-transformers
-transformers
-torch
-anthropic
+numpy
 python-dotenv
+openpyxl
