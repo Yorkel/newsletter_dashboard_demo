@@ -187,38 +187,35 @@ st.markdown(f"""
         font-size: 16px !important;
     }}
 
-    /* Primary buttons — light blue (Category 1) */
+    /* Primary buttons — light blue (Category 1 + Manual) */
     [data-testid="stButton"] button[kind="primary"] {{
         background-color: #d6e4f0 !important;
-        border-color: #4472c4 !important;
+        border: 1px solid #4472c4 !important;
         color: #2c5aa0 !important;
     }}
     [data-testid="stButton"] button[kind="primary"]:hover {{
         background-color: #b8cfe2 !important;
-        color: #2c5aa0 !important;
-    }}
-
-    /* Secondary buttons — light red (Reject) */
-    [data-testid="stButton"] button[kind="secondary"] {{
-        background-color: #fadbd8 !important;
-        border-color: #e74c3c !important;
-        color: #c0392b !important;
-    }}
-    [data-testid="stButton"] button[kind="secondary"]:hover {{
-        background-color: #f1948a !important;
-        color: white !important;
     }}
 
     /* Tertiary buttons — light orange (Category 2) */
     [data-testid="stButton"] button[kind="tertiary"] {{
         background-color: #fde8d0 !important;
-        border-color: #ed7d31 !important;
-        color: #c46516 !important;
         border: 1px solid #ed7d31 !important;
+        color: #c46516 !important;
     }}
     [data-testid="stButton"] button[kind="tertiary"]:hover {{
         background-color: #f9d4ae !important;
-        color: #c46516 !important;
+    }}
+
+    /* Secondary buttons — light red (Reject) */
+    [data-testid="stButton"] button[kind="secondary"] {{
+        background-color: #fadbd8 !important;
+        border: 1px solid #e74c3c !important;
+        color: #c0392b !important;
+    }}
+    [data-testid="stButton"] button[kind="secondary"]:hover {{
+        background-color: #f1948a !important;
+        color: white !important;
     }}
 </style>
 """, unsafe_allow_html=True)
@@ -233,7 +230,7 @@ st.sidebar.title("Newsletter Curator")
 
 page = st.sidebar.radio(
     "Navigate",
-    ["About", "Add Article", "Review Articles", "Organise", "Newsletter Draft", "Sources", "Feedback"],
+    ["About", "Instructions", "Add Article", "Review Articles", "Organise", "Newsletter Draft", "Sources", "Feedback"],
 )
 
 # Load data
@@ -333,9 +330,10 @@ if page == "About":
     # Dashboard pages
     st.subheader("Dashboard pages")
     pages_info = [
+        ("Instructions", "Step-by-step guide on how to use the dashboard."),
         ("Add Article", "Manually add articles the pipeline missed, with your own category suggestions."),
         ("Review Articles", "Review each article's two suggested categories. Accept the correct one or reject irrelevant items."),
-        ("Organise", "Accepted articles grouped by category. Select the top articles and move between categories if needed."),
+        ("Organise", "Shortlisted articles grouped by selected newsletter category for further review."),
         ("Newsletter Draft", "Preview the final newsletter. Write descriptions and download as plain text."),
         ("Sources", "All sources monitored for the newsletter, with links and automation status."),
         ("Feedback", "Rate classification accuracy, flag problem categories, suggest missing sources."),
@@ -345,7 +343,69 @@ if page == "About":
 
     st.markdown("")
 
-    st.caption("The classification model reads article content and suggests the two most likely categories. It gets the correct category in its top two suggestions for roughly 9 out of 10 articles.")
+    st.caption("The classification model reads article content and suggests the two most likely categories. The correct category appears in the top two suggestions about 90% of the time.")
+
+
+# -----------------------------
+# PAGE: INSTRUCTIONS
+# -----------------------------
+elif page == "Instructions":
+    st.title("How to Use This Dashboard")
+
+    st.markdown("Follow these steps each week to review, organise and compile the newsletter.")
+
+    st.subheader("Weekly workflow")
+
+    st.markdown("""
+**Step 1: Review Articles**
+
+Go to the **Review Articles** page and select the current week. For each article you have four options:
+
+- **Category 1** (blue button) accepts the model's top suggestion
+- **Category 2** (orange button) accepts the second suggestion
+- **Manual selection** lets you pick any of the six sections from a dropdown
+- **Reject** removes the article from the newsletter
+
+The correct section appears in the model's top two suggestions about **90%** of the time, so most articles only need a single click.
+
+You can review articles across multiple weeks. All accepted articles flow into the Organise page together.
+
+**Step 2: Add any missing articles**
+
+Go to **Add Article** to manually add articles the pipeline missed, for example from sources not yet in the automated feed or articles shared by colleagues. These appear in Review with a "MANUALLY ADDED" badge.
+
+**Step 3: Organise**
+
+The **Organise** page shows your shortlisted articles grouped into their selected newsletter categories for further review. Here you can:
+
+- Select your top picks (aim for 2 to 4 per section)
+- Move articles between sections if needed
+
+**Step 4: Newsletter Draft**
+
+The **Newsletter Draft** page generates a structured draft grouped by section. Write descriptions for each article and download as plain text for the final email.
+
+**Step 5: Feedback**
+
+Use the **Feedback** page to let us know how the tool is performing. Flag problem categories, suggest missing sources, or share any other observations. Your feedback directly improves the model.
+
+**Prefer to review offline?**
+
+Several pages include a download button so you can export articles as an Excel file and review them outside the dashboard. You can download the week's articles from the Review Articles page, your decisions from the Organise page, and the final draft from the Newsletter Draft page.
+""")
+
+    st.subheader("Tips")
+
+    st.markdown("""
+- **Low confidence scores** (below 40%) usually mean the article fits two sections equally well. Check both suggestions before deciding.
+- **The model over-predicts "Teacher recruitment, retention & development"**. If you see an article about a government announcement that mentions teachers, it may belong in "Political environment" instead. This is a known issue we are working on.
+- **You can change your mind.** Click a different button on the same article to update your decision.
+- **Check the Sources page** to see which feeds are automated and which are under review for inclusion.
+""")
+
+    st.markdown("")
+    st.markdown("Please use the **Feedback** page for suggestions and ways to improve the tool.")
+
 
 elif page == "Review Articles":
     st.title("Review Articles")
@@ -438,7 +498,7 @@ elif page == "Review Articles":
 
         with st.container(border=True):
             is_curator = row.get("curator_added", False)
-            badge = " <span style='background:#f39c12;color:white;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:600;'>CURATOR ADDED</span>" if is_curator else ""
+            badge = " <span style='background:#f39c12;color:white;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:600;'>MANUALLY ADDED</span>" if is_curator else ""
 
             # Category badges — Top 1 always blue, Top 2 always orange
             TOP1_COLOR = "#4472c4"
@@ -474,7 +534,7 @@ elif page == "Review Articles":
                     _save_decisions()
                     st.rerun()
             with col_c:
-                if st.button("✎ Manual selection", key=f"man_{url}", use_container_width=True):
+                if st.button("✎ Manual selection", key=f"man_{url}", use_container_width=True, type="primary"):
                     st.session_state[f"show_manual_{url}"] = True
             with col_d:
                 if st.button("✕ Reject", key=f"rej_{url}", use_container_width=True, type="secondary"):
@@ -544,7 +604,7 @@ elif page == "Review Articles":
 # -----------------------------
 elif page == "Add Article":
     st.title("Add Article")
-    st.markdown("Articles from the programme's source feeds are automatically scraped, classified and loaded into the **Review Articles** page each week. Use this page to manually add any additional articles the pipeline may have missed, for example from sources not yet in the feed, or articles shared directly by colleagues. Added articles will appear on the Review page with a **CURATOR ADDED** badge.")
+    st.markdown("Articles from 5 automated sources (Schools Week, DfE, EPI, FFT Education Datalab, FED) are scraped, classified and loaded into the **Review Articles** page each week. Use this page to manually add any additional articles the pipeline may have missed, for example from sources not yet in the feed, or articles shared directly by colleagues. Added articles will appear on the Review page with a **MANUALLY ADDED** badge. See the **Sources** page for the full list.")
 
     with st.form("add_article_form", clear_on_submit=True):
         title = st.text_input("Article title *")
@@ -598,7 +658,7 @@ elif page == "Add Article":
 # -----------------------------
 elif page == "Organise":
     st.title("Organise Newsletter")
-    st.markdown("Accepted articles grouped by category. Select up to **3 per category** for the newsletter. Use **Move to** to reassign an article to a different category.")
+    st.markdown("Shortlisted articles grouped by selected newsletter category for further review. Select up to **3 per category** for the newsletter. Use **Move to** to reassign an article to a different category.")
 
     # Initialise newsletter selections
     if "newsletter_picks" not in st.session_state:
@@ -835,163 +895,61 @@ elif page == "Newsletter Draft":
 # -----------------------------
 elif page == "Sources":
     st.title("Newsletter Sources")
-    st.markdown("All sources monitored for the ERP Weekly Newsletter. Click a source name to visit the site. The **Status** column shows whether the source is automated in the pipeline, being investigated, or requires manual checking.")
+    st.markdown("Sources currently included in the automated pipeline, plus sources under review for future inclusion.")
 
     st.markdown("")
 
-    # Sources actually in the pipeline (from Supabase articles_topics table):
-    # epi, fed, fft, gov (DfE), schoolsweek — everything else is not yet automated
     SOURCES = [
-        # Government & Parliament
-        {"Source": "Department for Education (DfE)", "URL": "https://www.gov.uk/government/organisations/department-for-education", "Category": "Government & Parliament", "How monitored": "Manual check", "Status": "Automated", "Notes": "Source: gov"},
-        {"Source": "Ofsted", "URL": "https://www.gov.uk/government/organisations/ofsted", "Category": "Government & Parliament", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Education Select Committee", "URL": "https://committees.parliament.uk/committee/203/education-committee/", "Category": "Government & Parliament", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Knowledge Exchange Unit – Parliament", "URL": "https://www.parliament.uk/get-involved/research-impact-at-the-uk-parliament/knowledge-exchange-at-uk-parliament/", "Category": "Government & Parliament", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "POST Parliament", "URL": "https://post.parliament.uk/resources/", "Category": "Government & Parliament", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "Local Government Association", "URL": "https://www.local.gov.uk/", "Category": "Government & Parliament", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
+        # Currently automated (6 sources in the pipeline)
+        {"Source": "Schools Week", "URL": "https://schoolsweek.co.uk/", "Status": "Automated", "Notes": ""},
+        {"Source": "Department for Education (DfE)", "URL": "https://www.gov.uk/government/organisations/department-for-education", "Status": "Automated", "Notes": ""},
+        {"Source": "EPI (Education Policy Institute)", "URL": "https://epi.org.uk/", "Status": "Automated", "Notes": ""},
+        {"Source": "FFT Education Datalab", "URL": "https://ffteducationdatalab.org.uk/", "Status": "Automated", "Notes": ""},
+        {"Source": "FED (Foundation for Education Development)", "URL": "https://fed.education/", "Status": "Automated", "Notes": ""},
 
-        # Four Nations
-        {"Source": "Welsh Government – Children & Families", "URL": "https://www.gov.wales/children-families", "Category": "Four Nations", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Welsh Government – Education & Skills", "URL": "https://www.gov.wales/education-skills", "Category": "Four Nations", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Welsh Government – Digital", "URL": "https://www.gov.wales/digital", "Category": "Four Nations", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Welsh Government – Hwb Education News", "URL": "https://hwb.gov.wales/news/articles/discovery?sort=recent", "Category": "Four Nations", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Senedd Cymru – Children & Young People", "URL": "https://senedd.wales/senedd-now/topics/children-and-young-people/", "Category": "Four Nations", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Senedd Cymru – Children & Young People Committee", "URL": "https://senedd.wales/committees/children-young-people-and-education-committee/", "Category": "Four Nations", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Senedd Cymru – Education", "URL": "https://senedd.wales/senedd-now/topics/education/", "Category": "Four Nations", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Wales Centre for Public Policy", "URL": "https://www.wcpp.org.uk/", "Category": "Four Nations", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "Future Generations Commissioner for Wales", "URL": "https://www.futuregenerations.wales/", "Category": "Four Nations", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Scottish Government – News", "URL": "https://www.gov.scot/news/", "Category": "Four Nations", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Scottish Government – Publications", "URL": "https://www.gov.scot/publications/", "Category": "Four Nations", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Scottish Government – Digital Blog", "URL": "https://blogs.gov.scot/digital/", "Category": "Four Nations", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Scottish Parliament – SPICe Spotlight Blog", "URL": "https://spice-spotlight.scot/", "Category": "Four Nations", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Scottish Parliament – News", "URL": "https://www.parliament.scot/about/news/news-listing", "Category": "Four Nations", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Scottish Parliament – Education Committee", "URL": "https://www.parliament.scot/chamber-and-committees/committees/current-and-previous-committees/session-6-education-children-and-young-people-committee", "Category": "Four Nations", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Digital Skills Scotland", "URL": "https://www.gov.scot/publications/a-changing-nation-how-scotland-will-thrive-in-a-digital-world/pages/digital-education-and-skills/", "Category": "Four Nations", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "NI Executive – Publications", "URL": "https://www.northernireland.gov.uk/publications", "Category": "Four Nations", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Belfast Telegraph – Education", "URL": "https://www.belfasttelegraph.co.uk/news/education", "Category": "Four Nations", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-
-        # Research & Think Tanks
-        {"Source": "EPI – Education Policy Institute", "URL": "https://epi.org.uk/", "Category": "Research & Think Tanks", "How monitored": "Newsletter", "Status": "Automated", "Notes": "Source: epi"},
-        {"Source": "Nuffield Foundation", "URL": "https://www.nuffieldfoundation.org/", "Category": "Research & Think Tanks", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "EEF – Education Endowment Foundation", "URL": "https://educationendowmentfoundation.org.uk/", "Category": "Research & Think Tanks", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "NFER", "URL": "https://www.nfer.ac.uk/", "Category": "Research & Think Tanks", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "BERA", "URL": "https://www.bera.ac.uk/", "Category": "Research & Think Tanks", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "FFT Education Datalab", "URL": "https://ffteducationdatalab.org.uk/", "Category": "Research & Think Tanks", "How monitored": "Newsletter", "Status": "Automated", "Notes": "Source: fft"},
-        {"Source": "ESRC / UKRI", "URL": "https://www.ukri.org/councils/esrc/", "Category": "Research & Think Tanks", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "Sutton Trust", "URL": "https://www.suttontrust.com/", "Category": "Research & Think Tanks", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Joseph Rowntree Foundation", "URL": "https://www.jrf.org.uk/", "Category": "Research & Think Tanks", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "Nesta", "URL": "https://www.nesta.org.uk/", "Category": "Research & Think Tanks", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "Jacobs Foundation", "URL": "https://jacobsfoundation.org/", "Category": "Research & Think Tanks", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "Child Poverty Action Group", "URL": "https://cpag.org.uk/", "Category": "Research & Think Tanks", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "Centre for Education and Youth", "URL": "https://cfey.org/news-and-events/", "Category": "Research & Think Tanks", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "FED – Foundation for Education Development", "URL": "https://fed.education/", "Category": "Research & Think Tanks", "How monitored": "Newsletter", "Status": "Automated", "Notes": "Source: fed"},
-        {"Source": "Institute for Government", "URL": "https://www.instituteforgovernment.org.uk/", "Category": "Research & Think Tanks", "How monitored": "Forwarded", "Status": "Not automated", "Notes": "Forwarded by Gemma"},
-        {"Source": "OECD – Education", "URL": "https://www.oecd.org/education/", "Category": "Research & Think Tanks", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "EPPI Centre", "URL": "https://eppi.ioe.ac.uk/cms/", "Category": "Research & Think Tanks", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Greater Manchester Combined Authority", "URL": "https://www.greatermanchester-ca.gov.uk/", "Category": "Research & Think Tanks", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "National Coordinating Centre for Public Engagement", "URL": "https://www.publicengagement.ac.uk/", "Category": "Research & Think Tanks", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "CAPE", "URL": "https://www.cape.ac.uk/", "Category": "Research & Think Tanks", "How monitored": "N/A", "Status": "Cannot automate", "Notes": "Now closed"},
-        {"Source": "IPPO", "URL": "https://theippo.co.uk/", "Category": "Research & Think Tanks", "How monitored": "N/A", "Status": "Cannot automate", "Notes": "Now closed"},
-
-        # Education Sector Bodies
-        {"Source": "ASCL", "URL": "https://www.ascl.org.uk/", "Category": "Education Sector Bodies", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "NEU – National Education Union", "URL": "https://neu.org.uk/", "Category": "Education Sector Bodies", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "NAHT", "URL": "https://www.naht.org.uk/", "Category": "Education Sector Bodies", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Chartered College of Teaching", "URL": "https://chartered.college/", "Category": "Education Sector Bodies", "How monitored": "Newsletter", "Status": "Automated", "Notes": "Source: cct"},
-        {"Source": "Education Development Trust", "URL": "https://www.educationdevelopmenttrust.com/our-research-and-insights", "Category": "Education Sector Bodies", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Confederation of School Trusts", "URL": "https://cstuk.org.uk/", "Category": "Education Sector Bodies", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Teacher Tapp", "URL": "https://teachertapp.co.uk/", "Category": "Education Sector Bodies", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "Children's Commissioner", "URL": "https://www.childrenscommissioner.gov.uk/", "Category": "Education Sector Bodies", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-
-        # EdTech & Digital Rights
-        {"Source": "Ada Lovelace Institute", "URL": "https://www.adalovelaceinstitute.org/", "Category": "EdTech & Digital Rights", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "5Rights Foundation", "URL": "https://5rightsfoundation.com/", "Category": "EdTech & Digital Rights", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Defend Digital Me", "URL": "https://defenddigitalme.org/", "Category": "EdTech & Digital Rights", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Digital Poverty Alliance", "URL": "https://digitalpovertyalliance.org/", "Category": "EdTech & Digital Rights", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "TPEA", "URL": "https://tpea.ac.uk/", "Category": "EdTech & Digital Rights", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-
-        # Media & Commentary
-        {"Source": "Schools Week", "URL": "https://schoolsweek.co.uk/", "Category": "Media & Commentary", "How monitored": "Manual check", "Status": "Automated", "Notes": "Source: schoolsweek"},
-        {"Source": "The Guardian – Education", "URL": "https://www.theguardian.com/education", "Category": "Media & Commentary", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "WonkHE", "URL": "https://wonkhe.com/", "Category": "Media & Commentary", "How monitored": "Newsletter", "Status": "Not automated", "Notes": "Higher education focus"},
-        {"Source": "HEPI", "URL": "https://www.hepi.ac.uk/", "Category": "Media & Commentary", "How monitored": "Newsletter", "Status": "Not automated", "Notes": "Higher education focus"},
-        {"Source": "LPIPS", "URL": "https://lpiphub.bham.ac.uk/", "Category": "Media & Commentary", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-        {"Source": "Stian Westlake Substack", "URL": "https://magicsmoke.substack.com/", "Category": "Media & Commentary", "How monitored": "Newsletter", "Status": "Not automated", "Notes": ""},
-
-        # Internal Sources (UCL / IOE)
-        {"Source": "IOE Blog", "URL": "https://www.ucl.ac.uk/ioe/news-and-events/ioe-blog", "Category": "Internal (UCL / IOE)", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "IOE Research News", "URL": "https://www.ucl.ac.uk/ioe/research/research-news", "Category": "Internal (UCL / IOE)", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "IOE Professorial Public Lectures", "URL": "https://www.ucl.ac.uk/ioe/news-and-events/ioe-professorial-public-lectures", "Category": "Internal (UCL / IOE)", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "IOE in the Media", "URL": "https://www.ucl.ac.uk/ioe/news-and-events/media", "Category": "Internal (UCL / IOE)", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "CEPEO Blog", "URL": "https://blogs.ucl.ac.uk/cepeo/", "Category": "Internal (UCL / IOE)", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "UCL Knowledge Lab", "URL": "https://www.ucl.ac.uk/ioe/departments-and-centres/centres/ucl-knowledge-lab/knowledge-lab-seminar-series", "Category": "Internal (UCL / IOE)", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Helen Hamlyn Centre for Pedagogy", "URL": "https://www.ucl.ac.uk/ioe/departments-and-centres/centres/helen-hamlyn-centre-pedagogy-0-11-years/", "Category": "Internal (UCL / IOE)", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "CLOSER Blog", "URL": "https://closer.ac.uk/news-opinion/blog/", "Category": "Internal (UCL / IOE)", "How monitored": "Manual check", "Status": "Not automated", "Notes": ""},
-        {"Source": "Emma Wisby (IOE)", "URL": "", "Category": "Internal (UCL / IOE)", "How monitored": "Weekly email", "Status": "Cannot automate", "Notes": "Email distribution list"},
-        {"Source": "IOE Announcements", "URL": "", "Category": "Internal (UCL / IOE)", "How monitored": "Weekly email", "Status": "Cannot automate", "Notes": "Email bulletin"},
-        {"Source": "UPEN", "URL": "", "Category": "Internal (UCL / IOE)", "How monitored": "Newsletter", "Status": "Cannot automate", "Notes": "Cross-university network"},
-        {"Source": "UCL Policy Lab", "URL": "", "Category": "Internal (UCL / IOE)", "How monitored": "Newsletter", "Status": "Cannot automate", "Notes": "Via policylab@ucl.ac.uk"},
+        # Under review (5 sources being investigated)
+        {"Source": "Chartered College of Teaching", "URL": "https://chartered.college/", "Status": "Under review", "Notes": ""},
+        {"Source": "NFER (National Foundation for Educational Research)", "URL": "https://www.nfer.ac.uk/", "Status": "Under review", "Notes": ""},
+        {"Source": "Nuffield Foundation", "URL": "https://www.nuffieldfoundation.org/", "Status": "Under review", "Notes": ""},
+        {"Source": "EEF (Education Endowment Foundation)", "URL": "https://educationendowmentfoundation.org.uk/", "Status": "Under review", "Notes": ""},
+        {"Source": "The Guardian Education", "URL": "https://www.theguardian.com/education", "Status": "Under review", "Notes": ""},
     ]
 
     sources_df = pd.DataFrame(SOURCES)
 
     # Summary counts
     status_counts = sources_df["Status"].value_counts()
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
     col1.metric("Total sources", len(sources_df))
     col2.metric("Automated", status_counts.get("Automated", 0))
-    col3.metric("Not automated", status_counts.get("Not automated", 0))
-    col4.metric("Cannot automate", status_counts.get("Cannot automate", 0))
+    col3.metric("Under review", status_counts.get("Under review", 0))
 
-    st.markdown("")
-
-    # Filters
-    col_cat, col_status = st.columns(2)
-    with col_cat:
-        cat_filter = st.selectbox("Filter by category", ["All"] + sorted(sources_df["Category"].unique().tolist()))
-    with col_status:
-        status_filter = st.selectbox("Filter by status", ["All"] + sorted(sources_df["Status"].unique().tolist()))
-
-    display_df = sources_df.copy()
-    if cat_filter != "All":
-        display_df = display_df[display_df["Category"] == cat_filter]
-    if status_filter != "All":
-        display_df = display_df[display_df["Status"] == status_filter]
-
-    # Status colours
     STATUS_COLORS = {
         "Automated": "#70ad47",
-        "Not automated": "#5b9bd5",
-        "Cannot automate": "#c00000",
+        "Under review": "#ed7d31",
     }
 
-    st.markdown(f"**Showing {len(display_df)} of {len(sources_df)} sources**")
+    # Automated sources
+    st.subheader("Currently in the pipeline")
+    for _, row in sources_df[sources_df["Status"] == "Automated"].iterrows():
+        status_badge = f"<span style='background-color:{STATUS_COLORS['Automated']};color:white;padding:2px 8px;border-radius:4px;font-size:0.8em;'>Automated</span>"
+        st.markdown(
+            f"<a href='{row['URL']}' target='_blank'>{row['Source']}</a> {status_badge}",
+            unsafe_allow_html=True,
+        )
 
-    # Display grouped by category
-    for category in display_df["Category"].unique():
-        cat_df = display_df[display_df["Category"] == category]
-        st.subheader(category)
-
-        for _, row in cat_df.iterrows():
-            status_color = STATUS_COLORS.get(row["Status"], "#666")
-            link_html = f"<a href='{row['URL']}' target='_blank'>{row['Source']}</a>" if row["URL"] else row["Source"]
-            notes_html = f" · <em>{row['Notes']}</em>" if row["Notes"] else ""
-            status_badge = f"<span style='background-color:{status_color};color:white;padding:2px 8px;border-radius:4px;font-size:0.8em;'>{row['Status']}</span>"
-
-            st.markdown(
-                f"{link_html} {status_badge} &nbsp; <span style='color:#888;font-size:0.85em;'>({row['How monitored']})</span>{notes_html}",
-                unsafe_allow_html=True,
-            )
+    # Under review sources
+    st.subheader("Under review for inclusion")
+    for _, row in sources_df[sources_df["Status"] == "Under review"].iterrows():
+        status_badge = f"<span style='background-color:{STATUS_COLORS['Under review']};color:white;padding:2px 8px;border-radius:4px;font-size:0.8em;'>Under review</span>"
+        notes_html = f" · <em>{row['Notes']}</em>" if row["Notes"] else ""
+        st.markdown(
+            f"<a href='{row['URL']}' target='_blank'>{row['Source']}</a> {status_badge}{notes_html}",
+            unsafe_allow_html=True,
+        )
 
     st.markdown("")
-
-    # Legend
-    st.markdown("**Status key**")
-    legend_cols = st.columns(4)
-    for col, (status, color) in zip(legend_cols, STATUS_COLORS.items()):
-        col.markdown(f"<span style='background-color:{color};color:white;padding:2px 8px;border-radius:4px;font-size:0.85em;'>{status}</span>", unsafe_allow_html=True)
-
-    st.caption("**Automated** = articles from this source are pulled automatically into the pipeline. **Not automated** = source is not yet in the pipeline; curator checks this source directly. **Cannot automate** = source is closed, email-only, or otherwise not automatable.")
+    st.caption("**Automated** = articles from this source are pulled into the pipeline automatically each week. **Under review** = source is being evaluated for inclusion in a future update.")
 
 
 # -----------------------------
